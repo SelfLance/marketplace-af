@@ -77,7 +77,7 @@ describe('ProductPayment', function () {
     expect(receiverBalance).to.equal(0);
   });
 
-  it.only('should cancel order successfully', async function () {
+  it('should cancel order successfully', async function () {
     // Purchase product (call testPurchaseProduct for setup)
       // await this.testPurchaseProduct();
       let fee = (productPrice * quantity * feePercentage) / 1000;
@@ -101,9 +101,17 @@ describe('ProductPayment', function () {
     expect(buyerBalance).to.equal(buyerBalanceBefo - order.fee); // Refunded amount - fee
   });
 
-  it('should return order successfully', async function () {
+  it.only('should return order successfully', async function () {
     // Purchase and ship product
-    await this.testPurchaseProduct();
+      // await this.testPurchaseProduct();
+      let fee = (productPrice * quantity * feePercentage) / 1000;
+      await mockToken.connect(buyer).approve(productPayment.target, (productPrice * quantity) + fee);
+      console.log("Mock Balance of Buyer: ", await mockToken.balanceOf(buyer.address))
+
+    const buyerBalanceBefo = await mockToken.balanceOf(buyer.address);
+
+    // Purchase the product
+    await productPayment.connect(buyer).purchaseProduct(productId, productPrice, quantity);
     await productPayment.connect(owner).shipProduct(productId);
 
     // Return the order
