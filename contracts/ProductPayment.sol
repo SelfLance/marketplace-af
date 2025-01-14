@@ -53,6 +53,7 @@ contract ProductPayment {
 
     event OrderShipped(address indexed buyer, uint256 indexed productId);
     event OrderCancelled(address indexed buyer, uint256 indexed productId);
+    event TokenUpdated(address newToken);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not authorized");
@@ -72,13 +73,11 @@ contract ProductPayment {
     ) external {
         require(productPrice > 0, "Invalid product price");
         uint256 totalAmount = productPrice * quantity;
-        // Transfer ERC-20 tokens from buyer to owner
         bool success = paymentToken.transferFrom(
             msg.sender,
             address(this),
             totalAmount
         );
-
         require(success, "Payment failed");
         // Store the purchase details
         orders[productId] = Order({
@@ -147,9 +146,9 @@ contract ProductPayment {
         paymentToken.transfer(owner, order.amountPaid);
         emit OrderCancelled(msg.sender, orderId);
     }
-
     // Update token address (optional for owner)
     function updateToken(address _newToken) external onlyOwner {
         paymentToken = IERC20(_newToken);
+        emit TokenUpdated(_newToken);
     }
 }
