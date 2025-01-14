@@ -14,7 +14,7 @@ interface IERC20 {
     function balanceOf(address account) external view returns (uint256);
 }
 
-contract ProductPayment {
+contract MarketPlace {
     address public owner;
     IERC20 public paymentToken;
     enum OrderStatus {
