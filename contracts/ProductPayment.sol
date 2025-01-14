@@ -36,6 +36,7 @@ contract ProductPayment {
 
     // Mapping to store orders: productId => Order
     mapping(uint256 => Order) public orders;
+    address paymentReceiver;
 
     event ProductPurchased(
         address indexed buyer,
@@ -54,6 +55,8 @@ contract ProductPayment {
     event OrderShipped(address indexed buyer, uint256 indexed productId);
     event OrderCancelled(address indexed buyer, uint256 indexed productId);
     event TokenUpdated(address newToken);
+    event PaymentReceiverChanged(address newReceiver);
+    event OwnerChanged(address newOwner);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not authorized");
@@ -62,6 +65,7 @@ contract ProductPayment {
 
     constructor(address _tokenAddress) {
         owner = msg.sender;
+        paymentReceiver = msg.sender;
         paymentToken = IERC20(_tokenAddress);
     }
 
@@ -150,5 +154,14 @@ contract ProductPayment {
     function updateToken(address _newToken) external onlyOwner {
         paymentToken = IERC20(_newToken);
         emit TokenUpdated(_newToken);
+    }
+
+    function changePaymentReceiver(address _newReceiver) external onlyOwner {
+        paymentReceiver = _newReceiver;
+        emit PaymentReceiverChanged(_newReceiver);
+    }
+    function changeOwner(address _newOwner) external onlyOwner {
+        owner = _newOwner;
+        emit OwnerChanged(_newOwner);
     }
 }
