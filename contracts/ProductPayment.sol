@@ -38,6 +38,8 @@ contract ProductPayment {
     mapping(uint256 => Order) public orders;
     address public paymentReceiver;
     uint256 public totalAmountReceived;
+    address public feeAddress;
+    uint256 public feePercentage;
 
     event ProductPurchased(
         address indexed buyer,
@@ -58,6 +60,7 @@ contract ProductPayment {
     event TokenUpdated(address newToken);
     event PaymentReceiverChanged(address newReceiver);
     event OwnerChanged(address newOwner);
+    event ChangeFeeAddress(address newFeeAddress);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not authorized");
@@ -165,5 +168,9 @@ contract ProductPayment {
     function changeOwner(address _newOwner) external onlyOwner {
         owner = _newOwner;
         emit OwnerChanged(_newOwner);
+    }
+    function changeFeeAddress(address _newFeeAddress) external onlyOwner {
+        feeAddress = _newFeeAddress;
+        emit ChangeFeeAddress(_newFeeAddress);
     }
 }
