@@ -47,7 +47,7 @@ contract ProductPayment {
     );
 
     event OrderShipped(address indexed buyer, uint256 indexed productId);
-    // ProductConfirmed(address indexed buyer, uint256 indexed productId);
+    event OrderCancelled(address indexed buyer, uint256 indexed productId);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not authorized");
@@ -103,6 +103,19 @@ contract ProductPayment {
         order.OrderStatus = OrderStatus.Shipped;
         paymentToken.transfer(owner, order.amountPaid);
         emit OrderShipped(msg.sender, productId);
+    }
+
+    function canelOrder(uint256 orderId) public {
+        Order storage order = orders[orderId];
+        require(
+            order.OrderStatus == OrderStatus.Pending,
+            "Invalid order status"
+        );
+        require(order.buyer == msg.sender, "Not authorized");
+
+        order.OrderStatus = OrderStatus.Cancelled;
+        paymentToken.transfer(order.buyer, order.amountPaid);
+        emit OrderCancelled(msg.sender, orderId);
     }
 
     // Update token address (optional for owner)
