@@ -101,18 +101,8 @@ contract ProductPayment {
             "Invalid order status"
         );
         order.OrderStatus = OrderStatus.Shipped;
-
+        paymentToken.transfer(owner, order.amountPaid);
         emit OrderShipped(msg.sender, productId);
-    }
-
-    // Buyer confirms product receipt
-    function confirmProductReceived(uint256 productId) external {
-        Order storage order = orders[productId];
-        require(order.buyer == msg.sender, "Not the buyer");
-        require(!order.isConfirmed, "Already confirmed");
-
-        order.isConfirmed = true;
-        emit ProductConfirmed(msg.sender, productId);
     }
 
     // Update token address (optional for owner)
