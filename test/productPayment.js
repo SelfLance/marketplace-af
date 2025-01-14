@@ -16,7 +16,7 @@ describe('ProductPayment', function () {
   const feePercentage = 20;
 
   beforeEach(async function () {
-    [owner, buyer, paymentReceiver, feeAddress] = await ethers.getSigners();
+    [owner, buyer, paymentReceiver, feeAddress, user1, user2] = await ethers.getSigners();
 
     const MockToken = await ethers.getContractFactory('MockToken'); 
       mockToken = await MockToken.deploy();
@@ -186,6 +186,18 @@ describe('ProductPayment', function () {
     // Check the updated fee percentage
     expect(await productPayment.feePercentage()).to.equal(newFeePercentage);
   });
+    
+    it.only('should transfer token to contract successfully', async function () {
+       await  mockToken.mint(owner.address, "1000");
+        await    mockToken.connect(owner).transfer(user1.address, "200")
+       await mockToken.connect(owner).transfer(productPayment.target, "200")
+        console.log("Balance of Contract is :", await mockToken.balanceOf(productPayment.target))
+        
+
+
+
+        
+    })
 
   // ... Add test cases for withdrawMatic and withdrawToken ... 
 });
