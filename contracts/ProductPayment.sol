@@ -64,6 +64,7 @@ contract ProductPayment {
     event OwnerChanged(address newOwner);
     event ChangeFeeAddress(address newFeeAddress);
     event ChangeFeePercentage(uint256 newFeePercentage);
+    event WithdrawMatic(address indexed to, uint256 indexed amount);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not authorized");
@@ -189,5 +190,9 @@ contract ProductPayment {
         require(_newFeePercentage <= 500, "Invalid fee percentage");
         feePercentage = _newFeePercentage;
         emit ChangeFeePercentage(_newFeePercentage);
+    }
+    function withdrawMatic(uint256 _amount, address _to) public onlyOwner {
+        payable(_to).transfer(_amount);
+        emit WithdrawMatic(_to, _amount);
     }
 }
