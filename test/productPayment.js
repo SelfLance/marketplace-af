@@ -119,7 +119,7 @@ describe('ProductPayment', function () {
     expect(order.OrderStatus).to.equal(5); // OrderStatus.Returned
   });
 
-  it.only('should receive returned product successfully', async function () {
+  it('should receive returned product successfully', async function () {
     // Purchase, ship, and return product
       // await this.testPurchaseProduct();
       let fee = (productPrice * quantity * feePercentage) / 1000;
@@ -133,7 +133,6 @@ describe('ProductPayment', function () {
 
     // Receive the returned product
     await productPayment.connect(owner).receiveReturn(productId);
-
       
     // Check order status
     const order = await productPayment.orders(productId);
@@ -149,10 +148,10 @@ describe('ProductPayment', function () {
     const newMockToken = await NewMockToken.deploy();
 
     // Update the token address
-    await productPayment.connect(owner).updateToken(newMockToken.address);
+    await productPayment.connect(owner).updateToken(newMockToken.target);
 
     // Check the updated token address
-    expect(await productPayment.paymentToken()).to.equal(newMockToken.address);
+    expect(await productPayment.paymentToken()).to.equal(newMockToken.target);
   });
 
   it('should change payment receiver successfully', async function () {
