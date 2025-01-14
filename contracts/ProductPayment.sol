@@ -61,15 +61,22 @@ contract ProductPayment {
     event PaymentReceiverChanged(address newReceiver);
     event OwnerChanged(address newOwner);
     event ChangeFeeAddress(address newFeeAddress);
+    event ChangeFeePercentage(uint256 newFeePercentage);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not authorized");
         _;
     }
 
-    constructor(address _tokenAddress) {
+    constructor(
+        address _tokenAddress,
+        address _feeAddress,
+        uint256 _feePercentage
+    ) {
         owner = msg.sender;
         paymentReceiver = msg.sender;
+        feePercentage = _feePercentage;
+        feeAddress = _feeAddress;
         paymentToken = IERC20(_tokenAddress);
     }
 
@@ -172,5 +179,10 @@ contract ProductPayment {
     function changeFeeAddress(address _newFeeAddress) external onlyOwner {
         feeAddress = _newFeeAddress;
         emit ChangeFeeAddress(_newFeeAddress);
+    }
+    function changeFeePercentage(uint256 _newFeePercentage) external onlyOwner {
+        require(_newFeePercentage <= 500, "Invalid fee percentage");
+        feePercentage = _newFeePercentage;
+        emit ChangeFeePercentage(_newFeePercentage);
     }
 }
