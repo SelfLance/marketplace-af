@@ -36,7 +36,8 @@ contract ProductPayment {
 
     // Mapping to store orders: productId => Order
     mapping(uint256 => Order) public orders;
-    address paymentReceiver;
+    address public paymentReceiver;
+    uint256 public totalAmountReceived;
 
     event ProductPurchased(
         address indexed buyer,
@@ -109,7 +110,8 @@ contract ProductPayment {
             "Invalid order status"
         );
         order.OrderStatus = OrderStatus.Shipped;
-        paymentToken.transfer(owner, order.amountPaid);
+        paymentToken.transfer(paymentReceiver, order.amountPaid);
+        totalAmountReceived += order.amountPaid;
         emit OrderShipped(msg.sender, productId);
     }
 
