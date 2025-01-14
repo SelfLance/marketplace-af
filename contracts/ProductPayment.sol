@@ -205,9 +205,9 @@ contract ProductPayment {
     }
 
     function withdrawToken(
-        uint256 _amount,
+        address _token,
         address _to,
-        address _token
+        uint256 _amount
     ) public onlyOwner {
         IERC20(_token).transfer(_to, _amount);
         emit WithdrawToken(_token, _to, _amount);

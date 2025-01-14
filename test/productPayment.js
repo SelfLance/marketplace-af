@@ -191,13 +191,20 @@ describe('ProductPayment', function () {
        await  mockToken.mint(owner.address, "1000");
         await    mockToken.connect(owner).transfer(user1.address, "200")
        await mockToken.connect(owner).transfer(productPayment.target, "200")
-        console.log("Balance of Contract is :", await mockToken.balanceOf(productPayment.target))
-        
-
-
-
-        
+        console.log("Balance of Contract is :", await mockToken.balanceOf(productPayment.target))     
     })
+
+    it.only('should Withdrawl token from contract successfully', async function () {
+        await  mockToken.mint(owner.address, "1000");
+         await    mockToken.connect(owner).transfer(user1.address, "200")
+        await mockToken.connect(owner).transfer(productPayment.target, "200")
+        console.log("Balance of Contract is :", await mockToken.balanceOf(productPayment.target))     
+        
+        await productPayment.connect(owner).withdrawToken(mockToken.target, user2.address, 100)
+        expect(await mockToken.balanceOf(productPayment.target)).to.equal("100")
+        await expect(productPayment.connect(user2).withdrawToken(mockToken.target, user2.address, 100)).to.be.revertedWith("Not authorized")
+
+     })
 
   // ... Add test cases for withdrawMatic and withdrawToken ... 
 });
