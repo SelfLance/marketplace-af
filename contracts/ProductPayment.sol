@@ -41,6 +41,7 @@ contract ProductPayment {
     uint256 public totalAmountReceived;
     address public feeAddress;
     uint256 public feePercentage;
+    uint256 public totalFeeReceived;
 
     event ProductPurchased(
         address indexed buyer,
@@ -131,7 +132,9 @@ contract ProductPayment {
             "Invalid order status"
         );
         order.OrderStatus = OrderStatus.Shipped;
-        paymentToken.transfer(paymentReceiver, order.amountPaid);
+        paymentToken.transfer(paymentReceiver, order.amountPaid - order.fee);
+        paymentToken.transfer(feeAddress, order.fee);
+        totalFeeReceived += order.fee;
         totalAmountReceived += order.amountPaid;
         emit OrderShipped(msg.sender, productId);
     }
