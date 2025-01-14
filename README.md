@@ -11,5 +11,34 @@ REPORT_GAS=true npx hardhat test
 npx hardhat node
 npx hardhat ignition deploy ./ignition/modules/Lock.js
 ```
-# Contract for Product Payment
-     Product Payment and received confirmation updated
+
+# Contract for Marketplace
+
+      1- Product Purchase by Buyer
+      2- Product Order Cancellation by Buyer
+      3- Product Shipped by Owner
+      4- Product Received Confirmation by Buyer
+      5- Product Return by Buyer
+      6- Product Return Received by Owner
+      7- Platform Fee Setting by Owner (Max fee: 50%, Min fee: 0%)
+      8- Change Payment Token Address (Owner Only)
+      9- Change Fee Address (Owner Only)
+      10- Manual Withdrawal of Funds (Lifti & Matic) by Owner
+
+# Important Considerations
+
+     1- Fee Calculation: If a fee is implemented (greater than 0%), it will be calculated and deducted from the buyer's account during purchase.
+
+     2- Cancellation Fee Policy:
+     Cancellation fees are non-refundable.
+     Example: If a user buys 2 phones at 100 Lifti each (total: 200 Lifti) with a 2% fee, they pay 204 Lifti. If they cancel, they receive only 200 Lifti.
+
+     4- Return Fee Policy: Return fees are also non-refundable.
+
+     5- Separate Addresses: The contract will have separate addresses for:
+     Receiving fees.
+     Receiving product payments.
+     Upon shipment, funds will be transferred to the respective accounts.
+     
+     6- Return Handling: If a buyer returns a shipment and the owner accepts the return, the owner is responsible for sending the equivalent amount of Lifti back to the contract for refund to the buyer.
+

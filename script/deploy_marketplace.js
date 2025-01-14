@@ -1,23 +1,16 @@
 const hre = require("hardhat");
 
 async function main() {
-  // Get the contract factories
-  //   const [deployer] = await hre.ethers.getSigners();
-  //   let deployer = "0x1640fc5781B960400b9B0cAE7Cd72b21B2E246e7";
-  //   const WETH = await hre.ethers.getContractFactory("MockWETH");
-  const OrderManagment = await hre.ethers.getContractFactory("OrderManagement");
+
+  const MarketPlace = await hre.ethers.getContractFactory("OrderManagement");
 
     let liftiToken = "0xAbA8AB08D656C1829Be3795453758c2178131E56";
     let feeAddress = "0xC6C385dfe722557591f8e2e0297Ad06F2C083A2B"
     let feePercentage = 20;// Two percent
 
-  const orderManagement = await OrderManagment.deploy(liftiToken, feeAddress, feePercentage);
-  console.log("Order Management is Deployed To: ", orderManagement.target);
+  const marketPlace = await MarketPlace.deploy(liftiToken, feeAddress, feePercentage);
+  console.log("Market Place is Deployed To: ", marketPlace.target);
 
-  // const Staking = await hre.ethers.getContractFactory("Profitmaxpresale");
-  // const stake = await Staking.deploy(erc20.target);
-
-  // console.log("Staking Contract deployed to:", stake.target);
 }
 
 main().catch((error) => {
