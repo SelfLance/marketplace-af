@@ -39,6 +39,10 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js
      Receiving fees.
      Receiving product payments.
      Upon shipment, funds will be transferred to the respective accounts.
-     
+
      6- Return Handling: If a buyer returns a shipment and the owner accepts the return, the owner is responsible for sending the equivalent amount of Lifti back to the contract for refund to the buyer.
+
+# Marketplace Deployed on Amoy Testnet Polygon
+     Successfully verified contract MarketPlace on the block explorer.
+     https://amoy.polygonscan.com/address/0x64FCd3FaF15A46dE703552837105ac2915990A24#code
 
