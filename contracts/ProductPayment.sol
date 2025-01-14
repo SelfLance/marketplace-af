@@ -173,7 +173,7 @@ contract ProductPayment {
         );
 
         order.OrderStatus = OrderStatus.ReturnedReceived;
-        paymentToken.transfer(owner, order.amountPaid - order.fee);
+        paymentToken.transfer(order.buyer, order.amountPaid - order.fee);
         emit OrderCancelled(msg.sender, orderId);
     }
     // Update token address (optional for owner)

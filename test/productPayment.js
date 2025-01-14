@@ -101,14 +101,11 @@ describe('ProductPayment', function () {
     expect(buyerBalance).to.equal(buyerBalanceBefo - order.fee); // Refunded amount - fee
   });
 
-  it.only('should return order successfully', async function () {
+  it('should return order successfully', async function () {
     // Purchase and ship product
       // await this.testPurchaseProduct();
       let fee = (productPrice * quantity * feePercentage) / 1000;
       await mockToken.connect(buyer).approve(productPayment.target, (productPrice * quantity) + fee);
-      console.log("Mock Balance of Buyer: ", await mockToken.balanceOf(buyer.address))
-
-    const buyerBalanceBefo = await mockToken.balanceOf(buyer.address);
 
     // Purchase the product
     await productPayment.connect(buyer).purchaseProduct(productId, productPrice, quantity);
@@ -122,22 +119,29 @@ describe('ProductPayment', function () {
     expect(order.OrderStatus).to.equal(5); // OrderStatus.Returned
   });
 
-  it('should receive returned product successfully', async function () {
+  it.only('should receive returned product successfully', async function () {
     // Purchase, ship, and return product
-    await this.testPurchaseProduct();
+      // await this.testPurchaseProduct();
+      let fee = (productPrice * quantity * feePercentage) / 1000;
+      let balanceBuyerBef = await mockToken.balanceOf(buyer.address); 
+      await mockToken.connect(buyer).approve(productPayment.target, (productPrice * quantity) + fee);
+      await productPayment.connect(buyer).purchaseProduct(productId, productPrice, quantity);
+
     await productPayment.connect(owner).shipProduct(productId);
     await productPayment.connect(buyer).returnOrder(productId);
+    mockToken.mint(productPayment.target, "1000000")
 
     // Receive the returned product
     await productPayment.connect(owner).receiveReturn(productId);
 
+      
     // Check order status
     const order = await productPayment.orders(productId);
     expect(order.OrderStatus).to.equal(6); // OrderStatus.ReturnedReceived
 
     // Check owner's token balance (refunded amount - fee)
-    const ownerBalance = await mockToken.balanceOf(owner.address); 
-    expect(ownerBalance).to.equal(order.amountPaid - order.fee);
+    const buyerBalance = await mockToken.balanceOf(buyer.address); 
+    expect(buyerBalance).to.equal(balanceBuyerBef  - order.fee );
   });
 
   it('should update token successfully', async function () {
