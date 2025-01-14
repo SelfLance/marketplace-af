@@ -139,7 +139,7 @@ contract ProductPayment {
         require(order.buyer == msg.sender, "Not authorized");
 
         order.OrderStatus = OrderStatus.Cancelled;
-        paymentToken.transfer(order.buyer, order.amountPaid);
+        paymentToken.transfer(order.buyer, order.amountPaid - order.fee);
         emit OrderCancelled(msg.sender, orderId);
     }
 
@@ -164,7 +164,7 @@ contract ProductPayment {
         );
 
         order.OrderStatus = OrderStatus.ReturnedReceived;
-        paymentToken.transfer(owner, order.amountPaid);
+        paymentToken.transfer(owner, order.amountPaid - order.fee);
         emit OrderCancelled(msg.sender, orderId);
     }
     // Update token address (optional for owner)
