@@ -65,6 +65,11 @@ contract ProductPayment {
     event ChangeFeeAddress(address newFeeAddress);
     event ChangeFeePercentage(uint256 newFeePercentage);
     event WithdrawMatic(address indexed to, uint256 indexed amount);
+    event WithdrawToken(
+        address indexed token,
+        address indexed to,
+        uint256 indexed amount
+    );
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not authorized");
@@ -194,5 +199,14 @@ contract ProductPayment {
     function withdrawMatic(uint256 _amount, address _to) public onlyOwner {
         payable(_to).transfer(_amount);
         emit WithdrawMatic(_to, _amount);
+    }
+
+    function withdrawToken(
+        uint256 _amount,
+        address _to,
+        address _token
+    ) public onlyOwner {
+        IERC20(_token).transfer(_to, _amount);
+        emit WithdrawToken(_token, _to, _amount);
     }
 }
