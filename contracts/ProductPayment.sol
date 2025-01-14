@@ -7,6 +7,10 @@ interface IERC20 {
         address recipient,
         uint256 amount
     ) external returns (bool);
+    function transfer(
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
     function balanceOf(address account) external view returns (uint256);
 }
 
@@ -27,7 +31,7 @@ contract ProductPayment {
         uint256 quantity;
         uint256 price;
         uint256 amountPaid;
-        bool OrderStatus;
+        OrderStatus OrderStatus;
     }
 
     // Mapping to store orders: productId => Order
@@ -40,10 +44,11 @@ contract ProductPayment {
     );
     event ProductPurchased(
         address indexed buyer,
-        uint256 indexed productId,
-        uint256 indexed quantity,
-        uint256 indexed productPrice,
-        uint256 indexed totalAmount
+        uint256 productId,
+        uint256 quantity,
+        uint256 productPrice,
+        uint256 totalAmount,
+        OrderStatus indexed orderStatus
     );
 
     event OrderShipped(address indexed buyer, uint256 indexed productId);
@@ -115,6 +120,31 @@ contract ProductPayment {
 
         order.OrderStatus = OrderStatus.Cancelled;
         paymentToken.transfer(order.buyer, order.amountPaid);
+        emit OrderCancelled(msg.sender, orderId);
+    }
+
+    function returnOrder(uint256 orderId) public {
+        Order storage order = orders[orderId];
+        require(
+            order.OrderStatus == OrderStatus.Shipped,
+            "Invalid order status"
+        );
+        require(order.buyer == msg.sender, "Not authorized");
+
+        order.OrderStatus = OrderStatus.Returned;
+        // paymentToken.transfer(order.buyer, order.amountPaid);
+        emit OrderCancelled(msg.sender, orderId);
+    }
+
+    function receiveReturn(uint256 orderId) public onlyOwner {
+        Order storage order = orders[orderId];
+        require(
+            order.OrderStatus == OrderStatus.Returned,
+            "Invalid order status"
+        );
+
+        order.OrderStatus = OrderStatus.ReturnedReceived;
+        paymentToken.transfer(owner, order.amountPaid);
         emit OrderCancelled(msg.sender, orderId);
     }
 
