@@ -30,6 +30,7 @@ contract ProductPayment {
         address buyer;
         uint256 quantity;
         uint256 price;
+        uint256 fee;
         uint256 amountPaid;
         OrderStatus OrderStatus;
     }
@@ -51,6 +52,7 @@ contract ProductPayment {
         uint256 productId,
         uint256 quantity,
         uint256 productPrice,
+        uint256 fees,
         uint256 totalAmount,
         OrderStatus indexed orderStatus
     );
@@ -94,12 +96,14 @@ contract ProductPayment {
             totalAmount
         );
         require(success, "Payment failed");
+        uint256 fees = (totalAmount * feePercentage) / 100;
         // Store the purchase details
         orders[productId] = Order({
             buyer: msg.sender,
             quantity: quantity,
             price: productPrice,
-            amountPaid: totalAmount,
+            fee: fees,
+            amountPaid: totalAmount + fees,
             OrderStatus: OrderStatus.Pending
         });
 
@@ -108,6 +112,7 @@ contract ProductPayment {
             productId,
             quantity,
             productPrice,
+            fees,
             totalAmount,
             OrderStatus.Pending
         );
