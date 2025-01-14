@@ -52,7 +52,7 @@ describe('ProductPayment', function () {
     expect(contractBalance).to.equal((productPrice * quantity) + expectedFee);
   });
 
-  it.only('should ship product successfully', async function () {
+  it('should ship product successfully', async function () {
     // Purchase product (call testPurchaseProduct for setup)
       // await this.testPurchaseProduct();
       let fee = (productPrice * quantity * feePercentage) / 1000;
@@ -77,9 +77,17 @@ describe('ProductPayment', function () {
     expect(receiverBalance).to.equal(0);
   });
 
-  it('should cancel order successfully', async function () {
+  it.only('should cancel order successfully', async function () {
     // Purchase product (call testPurchaseProduct for setup)
-    await this.testPurchaseProduct();
+      // await this.testPurchaseProduct();
+      let fee = (productPrice * quantity * feePercentage) / 1000;
+      await mockToken.connect(buyer).approve(productPayment.target, (productPrice * quantity) + fee);
+      console.log("Mock Balance of Buyer: ", await mockToken.balanceOf(buyer.address))
+
+    const buyerBalanceBefo = await mockToken.balanceOf(buyer.address);
+
+    // Purchase the product
+    await productPayment.connect(buyer).purchaseProduct(productId, productPrice, quantity);
 
     // Cancel the order
     await productPayment.connect(buyer).canelOrder(productId);
@@ -90,7 +98,7 @@ describe('ProductPayment', function () {
 
     // Check buyer's token balance
     const buyerBalance = await mockToken.balanceOf(buyer.address);
-    expect(buyerBalance).to.equal(1000 - order.amountPaid + order.fee); // Refunded amount - fee
+    expect(buyerBalance).to.equal(buyerBalanceBefo - order.fee); // Refunded amount - fee
   });
 
   it('should return order successfully', async function () {
