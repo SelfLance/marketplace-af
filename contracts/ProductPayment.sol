@@ -96,13 +96,13 @@ contract ProductPayment {
     ) external {
         require(productPrice > 0, "Invalid product price");
         uint256 totalAmount = productPrice * quantity;
+        uint256 fees = (totalAmount * feePercentage) / 1000;
         bool success = paymentToken.transferFrom(
             msg.sender,
             address(this),
-            totalAmount
+            totalAmount + fees
         );
         require(success, "Payment failed");
-        uint256 fees = (totalAmount * feePercentage) / 100;
         // Store the purchase details
         orders[productId] = Order({
             buyer: msg.sender,

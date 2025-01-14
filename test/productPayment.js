@@ -13,21 +13,25 @@ describe('ProductPayment', function () {
   const productId = 1;
   const productPrice = 100;
   const quantity = 2;
-  const feePercentage = 5;
+  const feePercentage = 20;
 
   beforeEach(async function () {
     [owner, buyer, paymentReceiver, feeAddress] = await ethers.getSigners();
 
     const MockToken = await ethers.getContractFactory('MockToken'); 
-    mockToken = await MockToken.deploy();
+      mockToken = await MockToken.deploy();
+      console.log("Mock Token is Deployed: ", mockToken.target)
+      mockToken.mint( buyer.address,"100000000000")
 
     ProductPayment = await ethers.getContractFactory('ProductPayment');
-    productPayment = await ProductPayment.deploy(mockToken.address, feeAddress.address, feePercentage);
+    productPayment = await ProductPayment.deploy(mockToken.target, feeAddress.address, feePercentage);
   });
 
   it('should purchase product successfully', async function () {
-    // Approve the contract to spend buyer's tokens
-    await mockToken.connect(buyer).approve(productPayment.address, productPrice * quantity);
+      // Approve the contract to spend buyer's tokens
+      let fee = (productPrice * quantity * feePercentage) / 1000;
+      await mockToken.connect(buyer).approve(productPayment.target, (productPrice * quantity) + fee);
+      console.log("Mock Balance of Buyer: ", await mockToken.balanceOf(buyer.address))
 
     // Purchase the product
     await productPayment.connect(buyer).purchaseProduct(productId, productPrice, quantity);
@@ -38,14 +42,14 @@ describe('ProductPayment', function () {
     expect(order.quantity).to.equal(quantity);
     expect(order.price).to.equal(productPrice);
     // Calculate expected fee
-    const expectedFee = (productPrice * quantity * feePercentage) / 100;
+    const expectedFee = (productPrice * quantity * feePercentage) / 1000;
     expect(order.fee).to.equal(expectedFee);
-    expect(order.amountPaid).to.equal(productPrice * quantity + expectedFee);
+    expect(order.amountPaid).to.equal((productPrice * quantity) + expectedFee);
     expect(order.OrderStatus).to.equal(0); // OrderStatus.Pending
 
     // Check token balance of the contract
-    const contractBalance = await mockToken.balanceOf(productPayment.address);
-    expect(contractBalance).to.equal(productPrice * quantity + expectedFee);
+    const contractBalance = await mockToken.balanceOf(productPayment.target);
+    expect(contractBalance).to.equal((productPrice * quantity) + expectedFee);
   });
 
   it('should ship product successfully', async function () {
