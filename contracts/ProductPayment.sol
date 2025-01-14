@@ -13,11 +13,21 @@ interface IERC20 {
 contract ProductPayment {
     address public owner;
     IERC20 public paymentToken;
-
+    enum OrderStatus {
+        Pending,
+        Confirmed,
+        Shipped,
+        Delivered,
+        Cancelled,
+        Returned,
+        ReturnedReceived
+    }
     struct Order {
         address buyer;
+        uint256 quantity;
+        uint256 price;
         uint256 amountPaid;
-        bool isConfirmed;
+        bool OrderStatus;
     }
 
     // Mapping to store orders: productId => Order
@@ -28,7 +38,16 @@ contract ProductPayment {
         uint256 indexed productId,
         uint256 amount
     );
-    event ProductConfirmed(address indexed buyer, uint256 indexed productId);
+    event ProductPurchased(
+        address indexed buyer,
+        uint256 indexed productId,
+        uint256 indexed quantity,
+        uint256 indexed productPrice,
+        uint256 indexed totalAmount
+    );
+
+    event OrderShipped(address indexed buyer, uint256 indexed productId);
+    // ProductConfirmed(address indexed buyer, uint256 indexed productId);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not authorized");
@@ -41,29 +60,49 @@ contract ProductPayment {
     }
 
     // Purchase product by ID (price is managed in backend)
-    function purchaseProduct(uint256 productId, uint256 productPrice) external {
+    function purchaseProduct(
+        uint256 productId,
+        uint256 productPrice,
+        uint256 quantity
+    ) external {
         require(productPrice > 0, "Invalid product price");
-        require(
-            orders[productId].buyer == address(0),
-            "Product already purchased"
-        );
-
+        uint256 totalAmount = productPrice * quantity;
         // Transfer ERC-20 tokens from buyer to owner
         bool success = paymentToken.transferFrom(
             msg.sender,
-            owner,
-            productPrice
+            address(this),
+            totalAmount
         );
-        require(success, "Payment failed");
 
+        require(success, "Payment failed");
         // Store the purchase details
         orders[productId] = Order({
             buyer: msg.sender,
-            amountPaid: productPrice,
-            isConfirmed: false
+            quantity: quantity,
+            price: productPrice,
+            amountPaid: totalAmount,
+            OrderStatus: OrderStatus.Pending
         });
 
-        emit ProductPurchased(msg.sender, productId, productPrice);
+        emit ProductPurchased(
+            msg.sender,
+            productId,
+            quantity,
+            productPrice,
+            totalAmount,
+            OrderStatus.Pending
+        );
+    }
+
+    function shipProduct(uint256 productId) external onlyOwner {
+        Order storage order = orders[productId];
+        require(
+            order.OrderStatus == OrderStatus.Pending,
+            "Invalid order status"
+        );
+        order.OrderStatus = OrderStatus.Shipped;
+
+        emit OrderShipped(msg.sender, productId);
     }
 
     // Buyer confirms product receipt
