@@ -24,6 +24,9 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js
       8- Change Payment Token Address (Owner Only)
       9- Change Fee Address (Owner Only)
       10- Manual Withdrawal of Funds (Lifti & Matic) by Owner
+      11- Product Listing  By owner only
+      12- Product Quantity update  By owner only
+      13- Product Price Update By owner only
 
 # Important Considerations
 

@@ -52,11 +52,13 @@ contract MarketPlace {
     uint256 public totalFeeReceived;
     mapping(uint256 => bool) public productId;
     mapping(uint256 => Product) public products;
+    mapping(address => bool) public isManager;
 
     event ProductListed(
         uint256 indexed productId,
         uint256 indexed productPrice,
-        uint256 indexed quantity
+        uint256 indexed quantity,
+        address manager
     );
     event ProductPurchased(
         address indexed buyer,
@@ -90,9 +92,14 @@ contract MarketPlace {
         uint256 indexed _quantity
     );
     event UpdateProductPrice(uint256 productId, uint256 productPrice);
+    event ToggleManager(address manager, bool isManager);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not authorized");
+        _;
+    }
+    modifier isManager() {
+        require(msg.sender == owner || isManager[msg.sender], "Not authorized");
         _;
     }
 
@@ -113,11 +120,11 @@ contract MarketPlace {
         uint256 _productId,
         uint256 _productPrice,
         uint256 _quantity
-    ) public onlyOwner {
+    ) public isManager {
         require(!productId[_productId], "With this id already Exist");
         products[_productId] = Product(_productId, _productPrice, _quantity);
         productId[_productId] = true;
-        emit ProductListed(_productId, _productPrice, _quantity);
+        emit ProductListed(_productId, _productPrice, _quantity, msg.sender);
     }
     // Purchase product by ID (price is managed in backend)
     function purchaseProduct(uint256 _productId, uint256 _quantity) external {
@@ -155,7 +162,7 @@ contract MarketPlace {
         );
     }
 
-    function shipProduct(uint256 _productId) external onlyOwner {
+    function shipProduct(uint256 _productId) external isManager {
         Order storage order = orders[_productId];
         require(
             order.OrderStatus == OrderStatus.Pending,
@@ -195,7 +202,7 @@ contract MarketPlace {
         emit OrderCancelled(msg.sender, _orderId);
     }
 
-    function receiveReturn(uint256 _orderId) public onlyOwner {
+    function receiveReturn(uint256 _orderId) public isManager {
         Order storage order = orders[_orderId];
         require(
             order.OrderStatus == OrderStatus.Returned,
@@ -246,7 +253,7 @@ contract MarketPlace {
     function updateProductQuantity(
         uint256 _productId,
         uint256 _quantity
-    ) public onlyOwner {
+    ) public isManager {
         require(productId[_productId], "Product is not Exist");
         products[_productId].quantity += _quantity;
         emit UpdateProductQuantity(_productId, _quantity);
@@ -255,9 +262,17 @@ contract MarketPlace {
     function updateProductPrice(
         uint256 _productId,
         uint256 _productPrice
-    ) public onlyOwner {
+    ) public isManager {
         require(productId[_productId], "Product is not Exist");
         products[_productId].price = _productPrice;
         emit UpdateProductPrice(_productId, _productPrice);
+    }
+
+    function toggleManager(address _manager) public onlyOwner {
+        if (isManager[_manager]) {
+            isManager[_manager] = false;
+        }
+        isManager[_manager] = true;
+        emit ToggleManager(_manager, isManager[_manager]);
     }
 }
