@@ -28,13 +28,14 @@ describe('marketPlace', function () {
   });
 
   it('should purchase product successfully', async function () {
+    await marketPlace.connect(owner).productListed( productId, productPrice, quantity);
       // Approve the contract to spend buyer's tokens
       let fee = (productPrice * quantity * feePercentage) / 1000;
       await mockToken.connect(buyer).approve(marketPlace.target, (productPrice * quantity) + fee);
       console.log("Mock Balance of Buyer: ", await mockToken.balanceOf(buyer.address))
 
     // Purchase the product
-    await marketPlace.connect(buyer).purchaseProduct(productId, productPrice, quantity);
+    await marketPlace.connect(buyer).purchaseProduct(productId, quantity);
 
     // Check order details
     const order = await marketPlace.orders(productId);
@@ -53,49 +54,41 @@ describe('marketPlace', function () {
   });
 
   it('should ship product successfully', async function () {
-    // Purchase product (call testPurchaseProduct for setup)
-      // await this.testPurchaseProduct();
       let fee = (productPrice * quantity * feePercentage) / 1000;
       await mockToken.connect(buyer).approve(marketPlace.target, (productPrice * quantity) + fee);
-      console.log("Mock Balance of Buyer: ", await mockToken.balanceOf(buyer.address))
+    console.log("Mock Balance of Buyer: ", await mockToken.balanceOf(buyer.address))
+    
+    await marketPlace.connect(owner).productListed( productId, productPrice, quantity);
 
     // Purchase the product
-    await marketPlace.connect(buyer).purchaseProduct(productId, productPrice, quantity);
-
+    await marketPlace.connect(buyer).purchaseProduct(productId, quantity);
     // Ship the product
     await marketPlace.connect(owner).shipProduct(productId);
-
     // Check order status
     const order = await marketPlace.orders(productId);
     expect(order.OrderStatus).to.equal(2); // OrderStatus.Shipped
-
     // Check payment received
     expect(await marketPlace.totalAmountReceived()).to.equal(order.amountPaid);
-
     // Check token balance of payment receiver
     const receiverBalance = await mockToken.balanceOf(paymentReceiver.address);
     expect(receiverBalance).to.equal(0);
   });
 
   it('should cancel order successfully', async function () {
-    // Purchase product (call testPurchaseProduct for setup)
-      // await this.testPurchaseProduct();
       let fee = (productPrice * quantity * feePercentage) / 1000;
       await mockToken.connect(buyer).approve(marketPlace.target, (productPrice * quantity) + fee);
       console.log("Mock Balance of Buyer: ", await mockToken.balanceOf(buyer.address))
 
     const buyerBalanceBefo = await mockToken.balanceOf(buyer.address);
+    await marketPlace.connect(owner).productListed( productId, productPrice, quantity);
 
     // Purchase the product
-    await marketPlace.connect(buyer).purchaseProduct(productId, productPrice, quantity);
-
+    await marketPlace.connect(buyer).purchaseProduct(productId, quantity);
     // Cancel the order
     await marketPlace.connect(buyer).canelOrder(productId);
-
     // Check order status
     const order = await marketPlace.orders(productId);
     expect(order.OrderStatus).to.equal(4); // OrderStatus.Cancelled
-
     // Check buyer's token balance
     const buyerBalance = await mockToken.balanceOf(buyer.address);
     expect(buyerBalance).to.equal(buyerBalanceBefo - order.fee); // Refunded amount - fee
@@ -103,12 +96,12 @@ describe('marketPlace', function () {
 
   it('should return order successfully', async function () {
     // Purchase and ship product
-      // await this.testPurchaseProduct();
       let fee = (productPrice * quantity * feePercentage) / 1000;
       await mockToken.connect(buyer).approve(marketPlace.target, (productPrice * quantity) + fee);
+      await marketPlace.connect(owner).productListed( productId, productPrice, quantity);
 
     // Purchase the product
-    await marketPlace.connect(buyer).purchaseProduct(productId, productPrice, quantity);
+    await marketPlace.connect(buyer).purchaseProduct(productId, quantity);
     await marketPlace.connect(owner).shipProduct(productId);
 
     // Return the order
@@ -124,8 +117,10 @@ describe('marketPlace', function () {
       // await this.testPurchaseProduct();
       let fee = (productPrice * quantity * feePercentage) / 1000;
       let balanceBuyerBef = await mockToken.balanceOf(buyer.address); 
-      await mockToken.connect(buyer).approve(marketPlace.target, (productPrice * quantity) + fee);
-      await marketPlace.connect(buyer).purchaseProduct(productId, productPrice, quantity);
+    await mockToken.connect(buyer).approve(marketPlace.target, (productPrice * quantity) + fee);
+    await marketPlace.connect(owner).productListed( productId, productPrice, quantity);
+    
+      await marketPlace.connect(buyer).purchaseProduct(productId, quantity);
 
     await marketPlace.connect(owner).shipProduct(productId);
     await marketPlace.connect(buyer).returnOrder(productId);

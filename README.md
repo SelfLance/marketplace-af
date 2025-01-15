@@ -16,17 +16,18 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js
 
       1- Product Purchase by Buyer
       2- Product Order Cancellation by Buyer
-      3- Product Shipped by Owner
+      3- Product Shipped by Owner or Manager
       4- Product Received Confirmation by Buyer
       5- Product Return by Buyer
-      6- Product Return Received by Owner
+      6- Product Return Received by owner or manager
       7- Platform Fee Setting by Owner (Max fee: 50%, Min fee: 0%)
       8- Change Payment Token Address (Owner Only)
       9- Change Fee Address (Owner Only)
       10- Manual Withdrawal of Funds (Lifti & Matic) by Owner
-      11- Product Listing  By owner only
-      12- Product Quantity update  By owner only
-      13- Product Price Update By owner only
+      11- Product Listing  By owner or Manager
+      12- Product Quantity update  By owner Manager
+      13- Product Price Update By owner or Manager
+      14- Update Manager By owner only
 
 # Important Considerations
 

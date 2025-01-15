@@ -18,7 +18,6 @@ contract MarketPlace {
     address public owner;
     IERC20 public paymentToken;
     enum OrderStatus {
-        Created,
         Pending,
         Confirmed,
         Shipped,
@@ -98,7 +97,7 @@ contract MarketPlace {
         require(msg.sender == owner, "Not authorized");
         _;
     }
-    modifier isManager() {
+    modifier onlyManager() {
         require(msg.sender == owner || isManager[msg.sender], "Not authorized");
         _;
     }
@@ -120,9 +119,9 @@ contract MarketPlace {
         uint256 _productId,
         uint256 _productPrice,
         uint256 _quantity
-    ) public isManager {
+    ) public onlyManager {
         require(!productId[_productId], "With this id already Exist");
-        products[_productId] = Product(_productId, _productPrice, _quantity);
+        products[_productId] = Product(_productId, _quantity, _productPrice);
         productId[_productId] = true;
         emit ProductListed(_productId, _productPrice, _quantity, msg.sender);
     }
@@ -130,7 +129,7 @@ contract MarketPlace {
     function purchaseProduct(uint256 _productId, uint256 _quantity) external {
         require(
             products[_productId].quantity >= _quantity,
-            "Not Enough Amount Left"
+            "Product Not Found"
         );
         uint256 totalAmount = products[_productId].price * _quantity;
         uint256 fees = (totalAmount * feePercentage) / 1000;
@@ -162,7 +161,7 @@ contract MarketPlace {
         );
     }
 
-    function shipProduct(uint256 _productId) external isManager {
+    function shipProduct(uint256 _productId) external onlyManager {
         Order storage order = orders[_productId];
         require(
             order.OrderStatus == OrderStatus.Pending,
@@ -202,7 +201,7 @@ contract MarketPlace {
         emit OrderCancelled(msg.sender, _orderId);
     }
 
-    function receiveReturn(uint256 _orderId) public isManager {
+    function receiveReturn(uint256 _orderId) public onlyManager {
         Order storage order = orders[_orderId];
         require(
             order.OrderStatus == OrderStatus.Returned,
@@ -253,7 +252,7 @@ contract MarketPlace {
     function updateProductQuantity(
         uint256 _productId,
         uint256 _quantity
-    ) public isManager {
+    ) public onlyManager {
         require(productId[_productId], "Product is not Exist");
         products[_productId].quantity += _quantity;
         emit UpdateProductQuantity(_productId, _quantity);
@@ -262,7 +261,7 @@ contract MarketPlace {
     function updateProductPrice(
         uint256 _productId,
         uint256 _productPrice
-    ) public isManager {
+    ) public onlyManager {
         require(productId[_productId], "Product is not Exist");
         products[_productId].price = _productPrice;
         emit UpdateProductPrice(_productId, _productPrice);
