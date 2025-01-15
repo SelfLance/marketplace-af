@@ -84,6 +84,10 @@ contract MarketPlace {
         address indexed to,
         uint256 indexed amount
     );
+    event UpdateProductQuantity(
+        uint256 indexed productId,
+        uint256 indexed _quantity
+    );
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not authorized");
@@ -110,6 +114,7 @@ contract MarketPlace {
     ) public onlyOwner {
         require(!productId[productId], "With this id already Exist");
         products[productId] = Product(productId, productPrice, quantity);
+        productId[productId] = true;
         emit ProductListed(productId, productPrice, quantity);
     }
     // Purchase product by ID (price is managed in backend)
@@ -234,5 +239,14 @@ contract MarketPlace {
     ) public onlyOwner {
         IERC20(_token).transfer(_to, _amount);
         emit WithdrawToken(_token, _to, _amount);
+    }
+
+    function updateProductQuantity(
+        uint256 _productId,
+        uint256 _quantity
+    ) public onlyOwner {
+        require(productId[_productId], "This product Id is not Exist");
+        products[_productId].quantity += _quantity;
+        emit UpdateProductQuantity(_productId, _quantity);
     }
 }
