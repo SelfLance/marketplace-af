@@ -48,5 +48,4 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js
 
 # Marketplace Deployed on Amoy Testnet Polygon
      Successfully verified contract MarketPlace on the block explorer.
-     https://amoy.polygonscan.com/address/0x64FCd3FaF15A46dE703552837105ac2915990A24#code
-
+     https://amoy.polygonscan.com/address/0x7b16Bff2C4e09190d9E4A94F3C6c9827AD4337db#code
