@@ -18,6 +18,7 @@ contract MarketPlace {
     address public owner;
     IERC20 public paymentToken;
     enum OrderStatus {
+        Created,
         Pending,
         Confirmed,
         Shipped,
@@ -35,6 +36,12 @@ contract MarketPlace {
         OrderStatus OrderStatus;
     }
 
+    struct Product {
+        uint256 productId;
+        uint256 quantity;
+        uint256 price;
+    }
+
     // Mapping to store orders: productId => Order
     mapping(uint256 => Order) public orders;
     address public paymentReceiver;
@@ -42,7 +49,14 @@ contract MarketPlace {
     address public feeAddress;
     uint256 public feePercentage;
     uint256 public totalFeeReceived;
+    mapping(uint256 => bool) public productId;
+    mapping(uint256 => Product) public products;
 
+    event productListed(
+        uint256 indexed productId,
+        uint256 indexed productPrice,
+        uint256 indexed quantity
+    );
     event ProductPurchased(
         address indexed buyer,
         uint256 indexed productId,
@@ -57,7 +71,6 @@ contract MarketPlace {
         uint256 totalAmount,
         OrderStatus indexed orderStatus
     );
-
     event OrderShipped(address indexed buyer, uint256 indexed productId);
     event OrderCancelled(address indexed buyer, uint256 indexed productId);
     event TokenUpdated(address newToken);
@@ -89,14 +102,23 @@ contract MarketPlace {
         paymentToken = IERC20(_tokenAddress);
     }
 
-    // Purchase product by ID (price is managed in backend)
-    function purchaseProduct(
+    // Order Created Admin
+    function productListed(
         uint256 productId,
         uint256 productPrice,
         uint256 quantity
-    ) external {
-        require(productPrice > 0, "Invalid product price");
-        uint256 totalAmount = productPrice * quantity;
+    ) public onlyOwner {
+        require(!productId[productId], "With this id already Exist");
+        products[productId] = Product(productId, productPrice, quantity);
+        emit ProductListed(productId, productPrice, quantity);
+    }
+    // Purchase product by ID (price is managed in backend)
+    function purchaseProduct(uint256 productId, uint256 quantity) external {
+        require(
+            products[productId].quantity >= quantity,
+            "Not Enough Amount Left"
+        );
+        uint256 totalAmount = products[productId].price * quantity;
         uint256 fees = (totalAmount * feePercentage) / 1000;
         bool success = paymentToken.transferFrom(
             msg.sender,
@@ -108,17 +130,17 @@ contract MarketPlace {
         orders[productId] = Order({
             buyer: msg.sender,
             quantity: quantity,
-            price: productPrice,
+            price: products[productId].price,
             fee: fees,
             amountPaid: totalAmount + fees,
             OrderStatus: OrderStatus.Pending
         });
-
+        products[productId].quantity -= quanitity;
         emit ProductPurchased(
             msg.sender,
             productId,
             quantity,
-            productPrice,
+            products[productId].price,
             fees,
             totalAmount,
             OrderStatus.Pending
@@ -148,6 +170,7 @@ contract MarketPlace {
         require(order.buyer == msg.sender, "Not authorized");
 
         order.OrderStatus = OrderStatus.Cancelled;
+        products[order.productId].quantity += order.quantity;
         paymentToken.transfer(order.buyer, order.amountPaid - order.fee);
         emit OrderCancelled(msg.sender, orderId);
     }
