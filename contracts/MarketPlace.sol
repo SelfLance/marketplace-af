@@ -28,11 +28,12 @@ contract MarketPlace {
         ReturnedReceived
     }
     struct Order {
-        address buyer;
+        uint256 productId;
         uint256 quantity;
         uint256 price;
         uint256 fee;
         uint256 amountPaid;
+        address buyer;
         OrderStatus OrderStatus;
     }
 
@@ -52,7 +53,7 @@ contract MarketPlace {
     mapping(uint256 => bool) public productId;
     mapping(uint256 => Product) public products;
 
-    event productListed(
+    event ProductListed(
         uint256 indexed productId,
         uint256 indexed productPrice,
         uint256 indexed quantity
@@ -88,6 +89,7 @@ contract MarketPlace {
         uint256 indexed productId,
         uint256 indexed _quantity
     );
+    event UpdateProductPrice(uint256 productId, uint256 productPrice);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not authorized");
@@ -108,22 +110,22 @@ contract MarketPlace {
 
     // Order Created Admin
     function productListed(
-        uint256 productId,
-        uint256 productPrice,
-        uint256 quantity
+        uint256 _productId,
+        uint256 _productPrice,
+        uint256 _quantity
     ) public onlyOwner {
-        require(!productId[productId], "With this id already Exist");
-        products[productId] = Product(productId, productPrice, quantity);
-        productId[productId] = true;
-        emit ProductListed(productId, productPrice, quantity);
+        require(!productId[_productId], "With this id already Exist");
+        products[_productId] = Product(_productId, _productPrice, _quantity);
+        productId[_productId] = true;
+        emit ProductListed(_productId, _productPrice, _quantity);
     }
     // Purchase product by ID (price is managed in backend)
-    function purchaseProduct(uint256 productId, uint256 quantity) external {
+    function purchaseProduct(uint256 _productId, uint256 _quantity) external {
         require(
-            products[productId].quantity >= quantity,
+            products[_productId].quantity >= _quantity,
             "Not Enough Amount Left"
         );
-        uint256 totalAmount = products[productId].price * quantity;
+        uint256 totalAmount = products[_productId].price * _quantity;
         uint256 fees = (totalAmount * feePercentage) / 1000;
         bool success = paymentToken.transferFrom(
             msg.sender,
@@ -132,28 +134,29 @@ contract MarketPlace {
         );
         require(success, "Payment failed");
         // Store the purchase details
-        orders[productId] = Order({
+        orders[_productId] = Order({
+            productId: _productId,
             buyer: msg.sender,
-            quantity: quantity,
-            price: products[productId].price,
+            quantity: _quantity,
+            price: products[_productId].price,
             fee: fees,
             amountPaid: totalAmount + fees,
             OrderStatus: OrderStatus.Pending
         });
-        products[productId].quantity -= quanitity;
+        products[_productId].quantity -= _quantity;
         emit ProductPurchased(
             msg.sender,
-            productId,
-            quantity,
-            products[productId].price,
+            _productId,
+            _quantity,
+            products[_productId].price,
             fees,
             totalAmount,
             OrderStatus.Pending
         );
     }
 
-    function shipProduct(uint256 productId) external onlyOwner {
-        Order storage order = orders[productId];
+    function shipProduct(uint256 _productId) external onlyOwner {
+        Order storage order = orders[_productId];
         require(
             order.OrderStatus == OrderStatus.Pending,
             "Invalid order status"
@@ -163,11 +166,11 @@ contract MarketPlace {
         paymentToken.transfer(feeAddress, order.fee);
         totalFeeReceived += order.fee;
         totalAmountReceived += order.amountPaid;
-        emit OrderShipped(msg.sender, productId);
+        emit OrderShipped(msg.sender, _productId);
     }
 
-    function canelOrder(uint256 orderId) public {
-        Order storage order = orders[orderId];
+    function canelOrder(uint256 _orderId) public {
+        Order storage order = orders[_orderId];
         require(
             order.OrderStatus == OrderStatus.Pending,
             "Invalid order status"
@@ -177,11 +180,11 @@ contract MarketPlace {
         order.OrderStatus = OrderStatus.Cancelled;
         products[order.productId].quantity += order.quantity;
         paymentToken.transfer(order.buyer, order.amountPaid - order.fee);
-        emit OrderCancelled(msg.sender, orderId);
+        emit OrderCancelled(msg.sender, _orderId);
     }
 
-    function returnOrder(uint256 orderId) public {
-        Order storage order = orders[orderId];
+    function returnOrder(uint256 _orderId) public {
+        Order storage order = orders[_orderId];
         require(
             order.OrderStatus == OrderStatus.Shipped,
             "Invalid order status"
@@ -189,12 +192,11 @@ contract MarketPlace {
         require(order.buyer == msg.sender, "Not authorized");
 
         order.OrderStatus = OrderStatus.Returned;
-        // paymentToken.transfer(order.buyer, order.amountPaid);
-        emit OrderCancelled(msg.sender, orderId);
+        emit OrderCancelled(msg.sender, _orderId);
     }
 
-    function receiveReturn(uint256 orderId) public onlyOwner {
-        Order storage order = orders[orderId];
+    function receiveReturn(uint256 _orderId) public onlyOwner {
+        Order storage order = orders[_orderId];
         require(
             order.OrderStatus == OrderStatus.Returned,
             "Invalid order status"
@@ -202,7 +204,7 @@ contract MarketPlace {
 
         order.OrderStatus = OrderStatus.ReturnedReceived;
         paymentToken.transfer(order.buyer, order.amountPaid - order.fee);
-        emit OrderCancelled(msg.sender, orderId);
+        emit OrderCancelled(msg.sender, _orderId);
     }
     // Update token address (optional for owner)
     function updateToken(address _newToken) external onlyOwner {
@@ -245,8 +247,17 @@ contract MarketPlace {
         uint256 _productId,
         uint256 _quantity
     ) public onlyOwner {
-        require(productId[_productId], "This product Id is not Exist");
+        require(productId[_productId], "Product is not Exist");
         products[_productId].quantity += _quantity;
         emit UpdateProductQuantity(_productId, _quantity);
+    }
+
+    function updateProductPrice(
+        uint256 _productId,
+        uint256 _productPrice
+    ) public onlyOwner {
+        require(productId[_productId], "Product is not Exist");
+        products[_productId].price = _productPrice;
+        emit UpdateProductPrice(_productId, _productPrice);
     }
 }
