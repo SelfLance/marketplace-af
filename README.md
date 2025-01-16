@@ -46,6 +46,8 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js
 
      6- Return Handling: If a buyer returns a shipment and the owner accepts the return, the owner is responsible for sending the equivalent amount of Lifti back to the contract for refund to the buyer.
 
+     7- added manager functionality , manager will be added by owner and manager perform shiping confirmation
+
 # Marketplace Deployed on Amoy Testnet Polygon
      Successfully verified contract MarketPlace on the block explorer.
      https://amoy.polygonscan.com/address/0x7b16Bff2C4e09190d9E4A94F3C6c9827AD4337db#code
